@@ -101,6 +101,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
           if (-not (Test-Path './generate_singbox_ruleset.ps1')) {
             throw "当前分支缺少 generate_singbox_ruleset.ps1"
           }
