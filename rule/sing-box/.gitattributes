@@ -1,0 +1,4 @@
+# sing-box 规则集：保证跨平台/CI 生成结果稳定
+*.srs binary
+*.json text eol=lf
+*.md text eol=lf

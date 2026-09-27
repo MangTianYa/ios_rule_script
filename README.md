@@ -27,6 +27,12 @@ https://github.com/blackmatrix7/ios_rule_script/tree/master/rule
 
 https://github.com/blackmatrix7/ios_rule_script/tree/master/rewrite
 
+sing-box 规则集（Rule-Set，适配 alpha 版本）
+
+https://github.com/MangTianYa/ios_rule_script/tree/master/rule/sing-box
+
+由 `rule/Surge` 自动转换生成，采用 sing-box 源文件格式（`version: 3`），兼容 1.11+ 及 alpha / beta 版本。生成脚本见根目录 `generate_singbox_ruleset.ps1`，详见 [rule/sing-box/README.md](rule/sing-box/README.md)。
+
 所有规则数据都来自互联网，感谢开源规则项目作者的辛勤付出。
 
 ## 脚本

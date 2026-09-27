@@ -1,0 +1,121 @@
+name: Update sing-box rule-set
+
+# 每 24 小时同步一次上游 blackmatrix7，并重新生成/编译 sing-box 规则集
+on:
+  schedule:
+    - cron: '30 20 * * *'   # 每天 20:30 UTC（北京时间次日 04:30）
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'sing-box 发布通道（用于编译 .srs）'
+        type: choice
+        default: alpha
+        options:
+          - alpha
+          - stable
+
+permissions:
+  contents: write
+
+# 同一分支的任务串行，避免推送竞争
+concurrency:
+  group: singbox-ruleset-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [master, release]
+    steps:
+      - name: Checkout ${{ matrix.branch }} (full history)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure git identity
+        shell: pwsh
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync upstream blackmatrix7/${{ matrix.branch }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git remote get-url upstream 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            git remote add upstream https://github.com/blackmatrix7/ios_rule_script.git
+          }
+          # 上游可能没有同名分支，缺失则跳过合并
+          git ls-remote --exit-code --heads upstream "${{ matrix.branch }}" | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "upstream 无 ${{ matrix.branch }} 分支，跳过同步"
+          } else {
+            git fetch --no-tags upstream "${{ matrix.branch }}"
+            # 冲突时优先保留本仓库改动（sing-box 目录、脚本、工作流）
+            git merge --no-edit -X ours "upstream/${{ matrix.branch }}"
+            Write-Host "已合并 upstream/${{ matrix.branch }}"
+          }
+
+      - name: Download sing-box compiler
+        id: singbox
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ github.event.inputs.channel || 'alpha' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $api = @{
+            'User-Agent'    = 'gh-actions'
+            'Accept'        = 'application/vnd.github+json'
+            'Authorization' = "Bearer $env:GH_TOKEN"
+          }
+          $rels = Invoke-RestMethod -Uri 'https://api.github.com/repos/SagerNet/sing-box/releases?per_page=40' -Headers $api
+          if ($env:CHANNEL -eq 'stable') {
+            $rel = $rels | Where-Object { -not $_.prerelease -and -not $_.draft } | Select-Object -First 1
+          } else {
+            $rel = $rels | Where-Object { $_.prerelease -and -not $_.draft } | Select-Object -First 1
+          }
+          if (-not $rel) { throw "未找到 $($env:CHANNEL) 通道的 sing-box 发布" }
+          Write-Host "使用 sing-box $($rel.tag_name)"
+          $asset = $rel.assets |
+            Where-Object { $_.name -like '*windows-amd64*.zip' -and $_.name -notlike '*legacy*' } |
+            Select-Object -First 1
+          if (-not $asset) { throw "该发布未找到 windows-amd64 资产" }
+          $zip = Join-Path $env:RUNNER_TEMP 'sing-box.zip'
+          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip -Headers @{ 'User-Agent' = 'gh-actions' }
+          $dir = Join-Path $env:RUNNER_TEMP 'sing-box'
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
+          $exe = (Get-ChildItem -LiteralPath $dir -Recurse -Filter 'sing-box.exe' | Select-Object -First 1).FullName
+          if (-not $exe) { throw "解压后未找到 sing-box.exe" }
+          "exe=$exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          & $exe version
+
+      - name: Generate JSON and compile SRS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path './generate_singbox_ruleset.ps1')) {
+            throw "当前分支缺少 generate_singbox_ruleset.ps1"
+          }
+          ./generate_singbox_ruleset.ps1 -Compile -SingBox "${{ steps.singbox.outputs.exe }}"
+
+      - name: Commit and push if changed
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git add -A -- rule/sing-box
+          if (git status --porcelain -- rule/sing-box) {
+            git commit -m "chore(sing-box): update rule-set ($(Get-Date -Format 'yyyy-MM-dd'))"
+            Write-Host "sing-box 规则有更新，已提交"
+          } else {
+            Write-Host "sing-box 规则无变化"
+          }
+          # 推送本分支（含上游同步的合并提交与规则更新提交，无变化则为空操作）
+          git push origin "HEAD:${{ matrix.branch }}"
