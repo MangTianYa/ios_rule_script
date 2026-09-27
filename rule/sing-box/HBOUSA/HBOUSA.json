@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "rules": [
+    {
+      "domain_suffix": [
+        "cinemax.com",
+        "hbomax.com",
+        "hbomaxcdn.com",
+        "hbomaxdash.s.llnwi.net",
+        "hbonow.com",
+        "maxgo.com"
+      ]
+    },
+    {
+      "process_name": [
+        "com.hbo.hbonow"
+      ]
+    }
+  ]
+}

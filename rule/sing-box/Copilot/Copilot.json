@@ -1,0 +1,25 @@
+{
+  "version": 3,
+  "rules": [
+    {
+      "domain": [
+        "api.msn.com",
+        "assets.msn.com",
+        "copilot.microsoft.com",
+        "gateway.bingviz.microsoft.net",
+        "gateway.bingviz.microsoftapp.net",
+        "in.appcenter.ms",
+        "location.microsoft.com",
+        "odc.officeapps.live.com",
+        "r.bing.com",
+        "self.events.data.microsoft.com",
+        "services.bingapis.com",
+        "www.bing.com"
+      ],
+      "domain_suffix": [
+        "api.microsoftapp.net",
+        "bing-shopping.microsoft-falcon.io"
+      ]
+    }
+  ]
+}
