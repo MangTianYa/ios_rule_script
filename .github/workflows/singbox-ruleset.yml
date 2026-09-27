@@ -104,6 +104,10 @@ jobs:
           if (-not (Test-Path './generate_singbox_ruleset.ps1')) {
             throw "当前分支缺少 generate_singbox_ruleset.ps1"
           }
+          # 清理旧规则文件（保留 README.md 与 .gitattributes），确保上游已删除的规则同步移除
+          if (Test-Path './rule/sing-box') {
+            Get-ChildItem -Path './rule/sing-box' -Recurse -File -Include *.json,*.srs | Remove-Item -Force
+          }
           ./generate_singbox_ruleset.ps1 -Compile -SingBox "${{ steps.singbox.outputs.exe }}"
 
       - name: Commit and push if changed
