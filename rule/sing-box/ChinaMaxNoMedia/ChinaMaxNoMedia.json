@@ -3,16 +3,15 @@
   "rules": [
     {
       "domain_suffix": [
+        "alibaba",
+        "tmall",
         "cn",
         "ms",
-        "alibaba",
         "anquan",
         "citic",
-        "icbc",
         "shouji",
         "sina",
         "sohu",
-        "tmall",
         "unicom",
         "wang",
         "xihuan",
@@ -49,7 +48,8 @@
         "xn--vuq861b",
         "xn--xhq521b",
         "xn--zfr164b",
-        "yun"
+        "yun",
+        "icbc"
       ],
       "domain_keyword": [
         ".tmall.com",
