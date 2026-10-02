@@ -8,6 +8,7 @@
         "alibaba",
         "anquan",
         "citic",
+        "icbc",
         "shouji",
         "sina",
         "sohu",
@@ -48,8 +49,7 @@
         "xn--vuq861b",
         "xn--xhq521b",
         "xn--zfr164b",
-        "yun",
-        "icbc"
+        "yun"
       ],
       "domain_keyword": [
         ".tmall.com",
@@ -61,10 +61,10 @@
         "officecdn",
         "taobao",
         "bilibili",
+        "qiyi",
         "hnagroup",
         "stripe",
-        "weibo",
-        "qiyi"
+        "weibo"
       ]
     },
     {
