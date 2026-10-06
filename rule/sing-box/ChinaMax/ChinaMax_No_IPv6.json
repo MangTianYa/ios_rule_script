@@ -3,12 +3,12 @@
   "rules": [
     {
       "domain_suffix": [
+        "alipay",
         "alibaba",
         "taobao",
         "tmall",
         "cn",
         "ms",
-        "alipay",
         "anquan",
         "baidu",
         "citic",
@@ -65,10 +65,10 @@
         "officecdn",
         "taobao",
         "bilibili",
-        "qiyi",
         "hnagroup",
         "stripe",
-        "weibo"
+        "weibo",
+        "qiyi"
       ],
       "ip_cidr": [
         "0.0.0.0/32",
